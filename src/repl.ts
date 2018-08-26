@@ -1,6 +1,8 @@
 import readline from 'readline'
 import vm, { Context } from 'vm'
 import Tty from './tty'
+import chalk from 'chalk'
+import stripAnsi from 'strip-ansi'
 
 const sandbox = {
   console: {
@@ -9,6 +11,9 @@ const sandbox = {
 }
 
 const ctx = vm.createContext(sandbox) // Contextify the sandbox.
+
+const char = chalk.greenBright.bold('In [2]: ')
+console.log(stripAnsi(char).length)
 
 interface KeyInfo {
   sequence: string
@@ -42,7 +47,7 @@ export default class Repl {
   }
 
   get prompt() {
-    return `In [${this.replCount}]: `
+    return chalk.greenBright.bold(`In [${this.replCount}]: `)
   }
 
   boot() {
@@ -82,7 +87,9 @@ export default class Repl {
     }
 
     if (key.name === 'return') {
-      this.history.push(this.tty.command)
+      if (this.history.slice(-1)[0] !== this.tty.command) {
+        this.history.push(this.tty.command)
+      }
       this.historyIndex = this.history.length
       this.tty.cursorPosition = 0
       console.log()
@@ -158,7 +165,12 @@ export default class Repl {
       return
     }
 
-    this.tty.incrementPosition()
-    this.tty.setCommand(this.tty.command + key.sequence)
+    const position = this.tty.cursorPosition
+    const command =
+      this.tty.command.substr(0, this.tty.cursorPosition) +
+      key.sequence +
+      this.tty.command.substr(this.tty.cursorPosition, this.tty.command.length)
+    this.tty.setCommand(command)
+    this.tty.setPosition(position + 1)
   }
 }

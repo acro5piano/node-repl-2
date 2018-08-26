@@ -1,6 +1,7 @@
 import readline from 'readline'
 import tty from 'tty'
 import vm from 'vm'
+import stripAnsi from 'strip-ansi'
 
 interface KeyInfo {
   sequence: string
@@ -60,7 +61,7 @@ export default class Tty {
 
   public setPosition(position: number) {
     this.cursorPosition = position
-    readline.cursorTo(process.stdout, this.prompt.length + position)
+    readline.cursorTo(process.stdout, stripAnsi(this.prompt).length + position)
   }
 
   public incrementPosition() {
