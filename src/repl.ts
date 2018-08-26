@@ -12,9 +12,6 @@ const sandbox = {
 
 const ctx = vm.createContext(sandbox) // Contextify the sandbox.
 
-const char = chalk.greenBright.bold('In [2]: ')
-console.log(stripAnsi(char).length)
-
 interface KeyInfo {
   sequence: string
   name: string
