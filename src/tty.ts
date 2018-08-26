@@ -59,7 +59,6 @@ export default class Tty {
   }
 
   public setPosition(position: number) {
-    // console.log(position)
     this.cursorPosition = position
     readline.cursorTo(process.stdout, this.prompt.length + position)
   }

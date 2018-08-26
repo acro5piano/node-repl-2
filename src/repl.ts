@@ -52,7 +52,11 @@ export default class Repl {
 
   onKeyPress = async (str: string, key: KeyInfo) => {
     // console.log(this.tty.cursorPosition)
+
     if (key.name === 'backspace') {
+      if (this.tty.cursorPosition === 0) {
+        return
+      }
       const command =
         this.tty.command.substr(0, this.tty.cursorPosition - 1) +
         this.tty.command.substr(this.tty.cursorPosition, this.tty.command.length)
@@ -60,6 +64,20 @@ export default class Repl {
       this.tty.setCommand(command)
       this.tty.cursorPosition = position - 1
       this.tty.setPosition(position - 1)
+      return
+    }
+
+    if (key.ctrl && key.name === 'd') {
+      if (this.tty.command === '') {
+        process.exit(0)
+        return
+      }
+      const command =
+        this.tty.command.substr(0, this.tty.cursorPosition) +
+        this.tty.command.substr(this.tty.cursorPosition + 1, this.tty.command.length)
+      const position = this.tty.cursorPosition
+      this.tty.setCommand(command)
+      this.tty.setPosition(position)
       return
     }
 
@@ -77,6 +95,7 @@ export default class Repl {
         console.log()
         this.tty.setCommand('')
         this.replCount++
+        this.tty.setPrompt(this.prompt)
       }
       return
     }
@@ -86,31 +105,26 @@ export default class Repl {
       return
     }
 
-    if (key.ctrl && key.name === 'd') {
-      if (this.tty.command === '') {
-        process.exit(0)
-        return
-      }
-      this.tty.setCommand(this.tty.command.slice(0, -1))
-    }
-
     if (key.ctrl && key.name === 'a') {
-      this.tty.setPosition(this.prompt.length)
+      this.tty.setPosition(0)
       return
     }
 
-    if (key.ctrl && key.name === 'a') {
+    if (key.ctrl && key.name === 'e') {
       this.tty.setPosition(this.tty.command.length)
       return
     }
 
     if (key.ctrl && key.name === 'b') {
+      if (this.tty.cursorPosition === 0) {
+        return
+      }
       this.tty.moveCursor(-1)
       return
     }
 
     if (key.ctrl && key.name === 'f') {
-      if (this.tty.cursorPosition >= (this.prompt + this.tty.command).length) {
+      if (this.tty.cursorPosition >= this.tty.command.length) {
         return
       }
       this.tty.moveCursor(1)
@@ -118,11 +132,15 @@ export default class Repl {
     }
 
     if (key.ctrl && key.name === 'p') {
-      if (this.historyIndex === 0) {
+      if (this.historyIndex === 0 || this.history.length === 0) {
         return
       }
       this.historyIndex--
-      this.tty.setCommand(this.history[this.historyIndex])
+      const command = this.history[this.historyIndex]
+      if (!command) {
+        return
+      }
+      this.tty.setCommand(command)
       return
     }
 
@@ -131,7 +149,12 @@ export default class Repl {
         return
       }
       this.historyIndex++
-      this.tty.setCommand(this.history[this.historyIndex])
+      const command = this.history[this.historyIndex]
+      if (command) {
+        this.tty.setCommand(command)
+      } else {
+        this.tty.setCommand('')
+      }
       return
     }
 
