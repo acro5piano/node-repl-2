@@ -5,9 +5,7 @@ import chalk from 'chalk'
 import stripAnsi from 'strip-ansi'
 
 const sandbox = {
-  console: {
-    ...console,
-  },
+  console,
 }
 
 const ctx = vm.createContext(sandbox) // Contextify the sandbox.
@@ -52,18 +50,29 @@ export default class Repl {
     this.tty.setPrompt(this.prompt)
   }
 
+  showCompletionCandidates() {
+    const ctx = Object.keys(this.ctx)
+      .filter(x => x !== 'console')
+      .reduce((car, cur) => ({ ...car, [cur]: (this.ctx as any)[cur] }), {})
+    console.log()
+    console.log(ctx)
+    console.log()
+    this.tty.refresh()
+    return ctx
+  }
+
   onKeyPress = async (_str: any, key: KeyInfo) => {
-    // console.log(this.tty.cursorPosition)
+    if (key.name === 'tab') {
+      return this.showCompletionCandidates()
+    }
 
     if (key.name === 'backspace') {
       if (this.tty.cursorPosition === 0) {
         return
       }
-      const command =
-        this.tty.command.substr(0, this.tty.cursorPosition - 1) +
-        this.tty.command.substr(this.tty.cursorPosition, this.tty.command.length)
+      const [before, after] = this.tty.splitCommandAtCursor()
       const position = this.tty.cursorPosition
-      this.tty.setCommand(command)
+      this.tty.setCommand(before.slice(0, -1) + after)
       this.tty.cursorPosition = position - 1
       this.tty.setPosition(position - 1)
       return
@@ -74,11 +83,9 @@ export default class Repl {
         process.exit(0)
         return
       }
-      const command =
-        this.tty.command.substr(0, this.tty.cursorPosition) +
-        this.tty.command.substr(this.tty.cursorPosition + 1, this.tty.command.length)
+      const [before, after] = this.tty.splitCommandAtCursor()
       const position = this.tty.cursorPosition
-      this.tty.setCommand(command)
+      this.tty.setCommand(before + after.slice(1))
       this.tty.setPosition(position)
       return
     }
@@ -89,6 +96,15 @@ export default class Repl {
         console.log()
         this.tty.setPrompt(this.prompt)
         return
+      }
+
+      if (this.tty.command === 'ls') {
+        const res = this.showCompletionCandidates()
+        this.tty.setCommand('')
+        this.replCount++
+        this.tty.setPrompt(this.prompt)
+        this.tty.cursorPosition = 0
+        return res
       }
 
       if (this.history.slice(-1)[0] !== this.tty.command) {
@@ -170,12 +186,6 @@ export default class Repl {
       return
     }
 
-    const position = this.tty.cursorPosition
-    const command =
-      this.tty.command.substr(0, this.tty.cursorPosition) +
-      key.sequence +
-      this.tty.command.substr(this.tty.cursorPosition, this.tty.command.length)
-    this.tty.setCommand(command)
-    this.tty.setPosition(position + 1)
+    this.tty.insert(key.sequence)
   }
 }

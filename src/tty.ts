@@ -17,6 +17,12 @@ export default class Tty {
   history: string[] = []
   historyIndex: number = 0
 
+  public refresh() {
+    const position = this.cursorPosition
+    this.setPrompt(this.prompt)
+    this.setPosition(position)
+  }
+
   public setPromptAndCommand(prompt: string, command: string) {
     this.cursorTo(0)
     this.clearLine()
@@ -40,6 +46,23 @@ export default class Tty {
     this.command = command
     process.stdout.write(this.prompt)
     process.stdout.write(command)
+  }
+
+  public insert(str: string) {
+    const position = this.cursorPosition
+    const command =
+      this.command.substr(0, this.cursorPosition) +
+      str +
+      this.command.substr(this.cursorPosition, this.command.length)
+    this.setCommand(command)
+    this.setPosition(position + 1)
+  }
+
+  public splitCommandAtCursor() {
+    return [
+      this.command.substr(0, this.cursorPosition),
+      this.command.substr(this.cursorPosition, this.command.length),
+    ]
   }
 
   public cursorTo(to: number) {

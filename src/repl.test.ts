@@ -20,9 +20,11 @@ describe('Repl', () => {
     repl = new Repl()
     repl.boot()
   })
+
   it('can init', () => {
     expect(repl).not.toBeFalsy()
   })
+
   it('can set prompt number', async () => {
     expect(repl.tty.prompt).toEqual(chalk.greenBright.bold(`In [1]: `))
     await repl.onKeyPress(null, normalKey('return'))
@@ -31,6 +33,7 @@ describe('Repl', () => {
     await repl.onKeyPress(null, normalKey('return'))
     expect(repl.tty.prompt).toEqual(chalk.greenBright.bold(`In [2]: `))
   })
+
   it('can move cursors', async () => {
     expect(repl.tty.cursorPosition).toBe(0)
     await repl.onKeyPress(null, normalKey('a'))
@@ -49,6 +52,7 @@ describe('Repl', () => {
     await repl.onKeyPress(null, ctrlKey('e'))
     expect(repl.tty.cursorPosition).toBe(3)
   })
+
   it('can insert chars', async () => {
     expect(repl.tty.cursorPosition).toBe(0)
     expect(repl.history).toHaveLength(0)
@@ -94,5 +98,17 @@ describe('Repl', () => {
     await repl.onKeyPress(null, ctrlKey('d'))
     expect(repl.tty.cursorPosition).toBe(2)
     expect(repl.tty.command).toEqual('ab')
+  })
+
+  it('can show completion', async () => {
+    await repl.onKeyPress(null, normalKey('a=1'))
+    await repl.onKeyPress(null, normalKey('return'))
+    expect(repl.showCompletionCandidates()).toEqual({ a: 1 })
+    const tabRes = await repl.onKeyPress(null, normalKey('tab'))
+    expect(tabRes).toEqual({ a: 1 })
+    await repl.onKeyPress(null, normalKey('ls'))
+    const lsRes = await repl.onKeyPress(null, normalKey('return'))
+    expect(lsRes).toEqual({ a: 1 })
+    expect(repl.tty.command).toEqual('')
   })
 })
