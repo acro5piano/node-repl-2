@@ -8,6 +8,7 @@
   "scripts": {
     "start": "npm run build && node dist/index.js",
     "build": "env NODE_PATH=./src ./node_modules/.bin/tsc",
+    "test": "jest --maxWorkers=10",
     "watch:ts": "tsc -w",
     "watch:js": "env NODE_PATH=./dist nodemon --delay 2 --watch dist dist/index.js",
     "lint": "tslint -c tslint.json -p tsconfig.json",

@@ -52,7 +52,7 @@ export default class Repl {
     this.tty.setPrompt(this.prompt)
   }
 
-  onKeyPress = async (str: string, key: KeyInfo) => {
+  onKeyPress = async (_str: any, key: KeyInfo) => {
     // console.log(this.tty.cursorPosition)
 
     if (key.name === 'backspace') {
@@ -84,24 +84,32 @@ export default class Repl {
     }
 
     if (key.name === 'return') {
+      if (this.tty.command === '') {
+        console.log()
+        console.log()
+        this.tty.setPrompt(this.prompt)
+        return
+      }
+
       if (this.history.slice(-1)[0] !== this.tty.command) {
         this.history.push(this.tty.command)
       }
       this.historyIndex = this.history.length
       this.tty.cursorPosition = 0
       console.log()
+      let res: any
       try {
-        const res = await vm.runInContext(this.tty.command, this.ctx)
+        res = await vm.runInContext(this.tty.command, this.ctx)
         console.log(res)
+        console.log()
       } catch (e) {
         console.error(e)
       } finally {
-        console.log()
         this.tty.setCommand('')
         this.replCount++
         this.tty.setPrompt(this.prompt)
       }
-      return
+      return res
     }
 
     if (key.ctrl && key.name === 'c') {
