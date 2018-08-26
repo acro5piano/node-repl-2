@@ -1,11 +1,13 @@
+import chalk from 'chalk'
+import stripAnsi from 'strip-ansi'
 import readline from 'readline'
 import vm, { Context } from 'vm'
 import Tty from './tty'
-import chalk from 'chalk'
-import stripAnsi from 'strip-ansi'
+import { complete } from './completion-engine'
 
 const sandbox = {
   console,
+  require,
 }
 
 const ctx = vm.createContext(sandbox) // Contextify the sandbox.
@@ -51,14 +53,13 @@ export default class Repl {
   }
 
   showCompletionCandidates() {
-    const ctx = Object.keys(this.ctx)
-      .filter(x => x !== 'console')
-      .reduce((car, cur) => ({ ...car, [cur]: (this.ctx as any)[cur] }), {})
+    const { localVars } = complete(this.ctx, this.tty.command, this.tty.cursorPosition)
     console.log()
-    console.log(ctx)
+    console.log(chalk.bgBlue.white.bold('local vars'))
+    console.log(localVars)
     console.log()
     this.tty.refresh()
-    return ctx
+    return { localVars }
   }
 
   onKeyPress = async (_str: any, key: KeyInfo) => {
@@ -168,6 +169,7 @@ export default class Repl {
       if (!command) {
         return
       }
+      this.tty.setPosition(command.length)
       this.tty.setCommand(command)
       return
     }

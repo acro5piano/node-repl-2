@@ -85,7 +85,6 @@ describe('Repl', () => {
     expect((repl.ctx as any).a).toEqual(1)
     expect(repl.tty.cursorPosition).toBe(0)
     expect(repl.history).toHaveLength(1)
-    expect(repl.history[0]).toEqual('a=1')
 
     await repl.onKeyPress(null, normalKey('a'))
     await repl.onKeyPress(null, normalKey('b'))
@@ -100,15 +99,31 @@ describe('Repl', () => {
     expect(repl.tty.command).toEqual('ab')
   })
 
-  it('can show completion', async () => {
+  it('interact histories', async () => {
     await repl.onKeyPress(null, normalKey('a=1'))
     await repl.onKeyPress(null, normalKey('return'))
-    expect(repl.showCompletionCandidates()).toEqual({ a: 1 })
+    expect(repl.history).toHaveLength(1)
+    expect(repl.history[0]).toEqual('a=1')
+
+    await repl.onKeyPress(null, ctrlKey('p'))
+    expect(repl.tty.command).toEqual('a=1')
+    expect(repl.tty.cursorPosition).toEqual(3)
+  })
+
+  it('can show completion', async () => {
+    const expected = {
+      localVars: {
+        a: 1,
+      },
+    }
+    await repl.onKeyPress(null, normalKey('a=1'))
+    await repl.onKeyPress(null, normalKey('return'))
+    expect(repl.showCompletionCandidates()).toEqual(expected)
     const tabRes = await repl.onKeyPress(null, normalKey('tab'))
-    expect(tabRes).toEqual({ a: 1 })
+    expect(tabRes).toEqual(expected)
     await repl.onKeyPress(null, normalKey('ls'))
     const lsRes = await repl.onKeyPress(null, normalKey('return'))
-    expect(lsRes).toEqual({ a: 1 })
+    expect(lsRes).toEqual(expected)
     expect(repl.tty.command).toEqual('')
   })
 })
