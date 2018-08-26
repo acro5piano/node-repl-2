@@ -7,10 +7,9 @@
   "license": "MIT",
   "scripts": {
     "start": "npm run build && node dist/index.js",
-    "dev": "npm-run-all --parallel watch:ts watch:js",
+    "build": "env NODE_PATH=./src ./node_modules/.bin/tsc",
     "watch:ts": "tsc -w",
     "watch:js": "env NODE_PATH=./dist nodemon --delay 2 --watch dist dist/index.js",
-    "build": "env NODE_PATH=./src ./node_modules/.bin/tsc",
     "lint": "tslint -c tslint.json -p tsconfig.json",
     "lint:fix": "tslint --fix -c tslint.json -p tsconfig.json"
   },
