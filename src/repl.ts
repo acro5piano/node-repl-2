@@ -5,9 +5,17 @@ import vm, { Context } from 'vm'
 import Tty from './tty'
 import { complete } from './completion-engine'
 
+class DummyClass {
+  dummyProperty = 1
+  dummyMethod() {
+    return 1
+  }
+}
+
 const sandbox = {
   console,
   require,
+  DummyClass,
 }
 
 const ctx = vm.createContext(sandbox) // Contextify the sandbox.
@@ -53,11 +61,22 @@ export default class Repl {
   }
 
   showCompletionCandidates() {
-    const { localVars } = complete(this.ctx, this.tty.command, this.tty.cursorPosition)
+    const { localVars, omniCompletions, search } = complete(
+      this.ctx,
+      this.tty.command,
+      this.tty.cursorPosition,
+    )
     console.log()
     console.log(chalk.bgBlue.white.bold('local vars'))
     console.log(localVars)
     console.log()
+    console.log(chalk.bgBlue.white.bold('omni completions'))
+    console.log(omniCompletions)
+    console.log()
+
+    if (omniCompletions.length === 1 && search) {
+      this.tty.insert(omniCompletions[0].replace(search.method, ''))
+    }
     this.tty.refresh()
     return { localVars }
   }

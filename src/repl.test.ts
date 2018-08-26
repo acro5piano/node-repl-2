@@ -111,19 +111,14 @@ describe('Repl', () => {
   })
 
   it('can show completion', async () => {
-    const expected = {
-      localVars: {
-        a: 1,
-      },
-    }
     await repl.onKeyPress(null, normalKey('a=1'))
     await repl.onKeyPress(null, normalKey('return'))
-    expect(repl.showCompletionCandidates()).toEqual(expected)
+    expect((repl.showCompletionCandidates().localVars as any).a).toEqual(1)
     const tabRes = await repl.onKeyPress(null, normalKey('tab'))
-    expect(tabRes).toEqual(expected)
+    expect(tabRes.localVars.a).toEqual(1)
     await repl.onKeyPress(null, normalKey('ls'))
     const lsRes = await repl.onKeyPress(null, normalKey('return'))
-    expect(lsRes).toEqual(expected)
+    expect((lsRes.localVars as any).a).toEqual(1)
     expect(repl.tty.command).toEqual('')
   })
 })
