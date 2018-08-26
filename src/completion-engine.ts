@@ -1,6 +1,6 @@
 import { Context } from 'vm'
 
-const blackList = ['console', 'require']
+const blackList = Object.getOwnPropertyNames(global).concat(['require', 'console'])
 
 const makeClassCompletion = (obj: any) => {
   if (!obj) {
@@ -36,11 +36,10 @@ export const complete = (ctx: Context, line: string, cursorPosition: number) => 
     .reduce((car, cur) => ({ ...car, [cur]: (ctx as any)[cur] }), {})
 
   const [obj, method] = getCursorWord(line, cursorPosition).split('.')
-  const hoge = makeClassCompletion((ctx as any)[obj])
+  const hoge = makeClassCompletion((ctx as any)[obj] || (global as any)[obj])
   if (!hoge) {
     return { localVars, omniCompletions: [] }
   }
   const omniCompletions = hoge.filter(x => x.startsWith(method))
-  console.log(omniCompletions)
   return { localVars, omniCompletions, search: { class: obj, method } }
 }

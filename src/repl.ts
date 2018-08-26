@@ -16,6 +16,7 @@ const sandbox = {
   console,
   require,
   DummyClass,
+  ...global,
 }
 
 const ctx = vm.createContext(sandbox) // Contextify the sandbox.
@@ -71,7 +72,7 @@ export default class Repl {
     console.log(localVars)
     console.log()
     console.log(chalk.bgBlue.white.bold('omni completions'))
-    console.log(omniCompletions)
+    console.log(omniCompletions.join(' '))
     console.log()
 
     if (omniCompletions.length === 1 && search) {
