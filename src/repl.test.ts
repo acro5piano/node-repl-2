@@ -55,7 +55,7 @@ describe('Repl', () => {
 
   it('can insert chars', async () => {
     expect(repl.tty.cursorPosition).toBe(0)
-    expect(repl.history).toHaveLength(0)
+    expect(repl.state.history).toHaveLength(0)
 
     await repl.onKeyPress(null, normalKey('a'))
     await repl.onKeyPress(null, normalKey('b'))
@@ -84,7 +84,7 @@ describe('Repl', () => {
     expect(res).toEqual(1)
     expect((repl.ctx as any).a).toEqual(1)
     expect(repl.tty.cursorPosition).toBe(0)
-    expect(repl.history).toHaveLength(1)
+    expect(repl.state.history).toHaveLength(1)
 
     await repl.onKeyPress(null, normalKey('a'))
     await repl.onKeyPress(null, normalKey('b'))
@@ -102,8 +102,8 @@ describe('Repl', () => {
   it('interact histories', async () => {
     await repl.onKeyPress(null, normalKey('a=1'))
     await repl.onKeyPress(null, normalKey('return'))
-    expect(repl.history).toHaveLength(1)
-    expect(repl.history[0]).toEqual('a=1')
+    expect(repl.state.history).toHaveLength(1)
+    expect(repl.state.history[0]).toEqual('a=1')
 
     await repl.onKeyPress(null, ctrlKey('p'))
     expect(repl.tty.command).toEqual('a=1')

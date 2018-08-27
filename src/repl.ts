@@ -4,6 +4,7 @@ import readline from 'readline'
 import vm, { Context } from 'vm'
 import Tty from './tty'
 import { complete } from './completion-engine'
+import * as React from 'react'
 
 class DummyClass {
   dummyProperty = 1
@@ -27,16 +28,39 @@ interface KeyInfo {
   ctrl: boolean
 }
 
-export default class Repl {
-  replCount: number = 1
-  history: string[] = []
-  historyIndex: number = 0
+interface Props {
+  tty?: Tty
+  ctx?: Context
+}
+
+interface State {
+  replCount: number
+  history: string[]
+  historyIndex: number
+}
+
+export default class Repl extends React.Component<Props, State> {
   tty: Tty
   ctx: Context
+  state = {
+    replCount: 1,
+    history: [],
+    historyIndex: 0,
+  }
 
-  constructor(tty: Tty = new Tty(), ctx: Context = vm.createContext(sandbox)) {
+  constructor(
+    { tty = new Tty(), ctx = vm.createContext(sandbox) }: Props = {},
+    _context: any = {},
+    renderer: any = () => {},
+  ) {
+    super({ tty, ctx }, renderer)
     this.tty = tty
     this.ctx = ctx
+    this.state = {
+      replCount: 1,
+      history: [],
+      historyIndex: 0,
+    }
   }
 
   static start() {
@@ -53,7 +77,7 @@ export default class Repl {
   }
 
   get prompt() {
-    return chalk.greenBright.bold(`In [${this.replCount}]: `)
+    return chalk.greenBright.bold(`In [${this.state.replCount}]: `)
   }
 
   boot() {
@@ -122,16 +146,20 @@ export default class Repl {
       if (this.tty.command === 'ls') {
         const res = this.showCompletionCandidates()
         this.tty.setCommand('')
-        this.replCount++
+        this.setState({ replCount: this.state.replCount + 1 })
         this.tty.setPrompt(this.prompt)
         this.tty.cursorPosition = 0
         return res
       }
 
-      if (this.history.slice(-1)[0] !== this.tty.command) {
-        this.history.push(this.tty.command)
+      if (this.state.history.slice(-1)[0] !== this.tty.command) {
+        this.setState({
+          history: [...this.state.history, this.tty.command],
+        })
       }
-      this.historyIndex = this.history.length
+      this.setState({
+        historyIndex: this.state.history.length,
+      })
       this.tty.cursorPosition = 0
       console.log()
       let res: any
@@ -143,7 +171,7 @@ export default class Repl {
         console.error(e)
       } finally {
         this.tty.setCommand('')
-        this.replCount++
+        this.setState({ replCount: this.state.replCount + 1 })
         this.tty.setPrompt(this.prompt)
       }
       return res
@@ -180,33 +208,33 @@ export default class Repl {
       return
     }
 
-    if (key.ctrl && key.name === 'p') {
-      if (this.historyIndex === 0 || this.history.length === 0) {
-        return
-      }
-      this.historyIndex--
-      const command = this.history[this.historyIndex]
-      if (!command) {
-        return
-      }
-      this.tty.setPosition(command.length)
-      this.tty.setCommand(command)
-      return
-    }
-
-    if (key.ctrl && key.name === 'n') {
-      if (this.historyIndex === this.history.length) {
-        return
-      }
-      this.historyIndex++
-      const command = this.history[this.historyIndex]
-      if (command) {
-        this.tty.setCommand(command)
-      } else {
-        this.tty.setCommand('')
-      }
-      return
-    }
+    // if (key.ctrl && key.name === 'p') {
+    //   if (this.historyIndex === 0 || this.history.length === 0) {
+    //     return
+    //   }
+    //   this.historyIndex--
+    //   const command = this.history[this.historyIndex]
+    //   if (!command) {
+    //     return
+    //   }
+    //   this.tty.setPosition(command.length)
+    //   this.tty.setCommand(command)
+    //   return
+    // }
+    //
+    // if (key.ctrl && key.name === 'n') {
+    //   if (this.historyIndex === this.history.length) {
+    //     return
+    //   }
+    //   this.historyIndex++
+    //   const command = this.history[this.historyIndex]
+    //   if (command) {
+    //     this.tty.setCommand(command)
+    //   } else {
+    //     this.tty.setCommand('')
+    //   }
+    //   return
+    // }
 
     this.tty.insert(key.sequence)
   }
