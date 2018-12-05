@@ -170,6 +170,7 @@ export const complete = (_ctx: Context) => {
     } else {
       store.dispatch({ type: types.SET_COMPLETIONS, items })
     }
+    store.dispatch({ type: types.INCREMENT_COMPLETION_INDEX })
   } catch (e) {
     console.log(e)
     // pass

@@ -31,7 +31,7 @@ fs.readFile(replHistoryPath, 'utf8', (err, data) => {
 })
 
 store.subscribe(() => {
-  const { completions, cursorPosition, command, replCount } = store.getState()
+  const { completions, cursorPosition, command, replCount, completionIndex } = store.getState()
   const countIndicator = `In [${replCount}]: `
 
   readline.cursorTo(process.stdout, 0)
@@ -42,12 +42,27 @@ store.subscribe(() => {
   process.stdout.write(command)
 
   if (completions.length > 0) {
-    process.stdout.write('\n' + '\n' + completions.join(' '))
+    process.stdout.write('\n' + '\n')
+
+    const completed = completions[completionIndex]
+    process.stdout.write(completions.slice(0, completionIndex).join(' '))
+    process.stdout.write(' ' + chalk.bgMagentaBright.bold(completed) + ' ')
+    process.stdout.write(completions.slice(completionIndex + 1, -1).join(' '))
+
     readline.cursorTo(
       process.stdout,
       countIndicator.length + cursorPosition,
       (process.stdout.rows || 0) - 15,
     )
+
+    // if (completed !== command) {
+    //   setImmediate(() =>
+    //     store.dispatch({
+    //       type: types.SET_COMMAND,
+    //       command: command + completed,
+    //     }),
+    //   )
+    // }
   } else {
     readline.cursorTo(process.stdout, countIndicator.length + cursorPosition)
   }

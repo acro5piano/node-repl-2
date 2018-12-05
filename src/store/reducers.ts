@@ -11,6 +11,7 @@ export interface AppState {
   readonly histories: string[]
   readonly historyIndex: number
   readonly completions: string[]
+  readonly completionIndex: number
   readonly clipboard: string
 }
 
@@ -127,6 +128,24 @@ export const completions = (state: /*string[]*/ any = [], action: CompletionActi
     case types.SET_CURSOR_POSITON:
     case types.SET_CLIPBOARD:
       return []
+    default:
+      return state
+  }
+}
+
+type CompletionIndexAction =
+  | AppAction<types.INCREMENT_COMPLETION_INDEX>
+  | AppAction<types.DECREMENT_COMPLETION_INDEX>
+
+export const completionIndex = (
+  state: AppState['completionIndex'] = 0,
+  action: CompletionIndexAction,
+) => {
+  switch (action.type) {
+    case types.INCREMENT_COMPLETION_INDEX:
+      return state + 1
+    case types.DECREMENT_COMPLETION_INDEX:
+      return state + 1
     default:
       return state
   }
