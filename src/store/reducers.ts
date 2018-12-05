@@ -10,6 +10,8 @@ export interface AppState {
   readonly command: string
   readonly histories: string[]
   readonly historyIndex: number
+  readonly completions: string[]
+  readonly clipboard: string
 }
 
 type CursorPositionAction =
@@ -93,6 +95,29 @@ export const historyIndex = (state: AppState['historyIndex'] = 0, action: Histor
         return state
       }
       return state - 1
+    default:
+      return state
+  }
+}
+
+type CompletionAction = AppAction<types.SET_COMPLETIONS, { items: string }>
+
+// TODO: なぜか state: AppState['completions'] とするとバグる
+export const completions = (state: /*string[]*/ any = [], action: CompletionAction) => {
+  switch (action.type) {
+    case types.SET_COMPLETIONS:
+      return action.items
+    default:
+      return state
+  }
+}
+
+type ClipboardAction = AppAction<types.SET_CLIPBOARD, { content: string }>
+
+export const clipboard = (state: AppState['clipboard'] = '', action: ClipboardAction) => {
+  switch (action.type) {
+    case types.SET_CLIPBOARD:
+      return action.content
     default:
       return state
   }

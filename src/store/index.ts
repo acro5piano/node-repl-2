@@ -16,12 +16,13 @@ const store = createStore(combineReducers({ ...reducers }), applyMiddleware(...m
 process.stdout.write(chalk.greenBright.bold(`In [1]: `))
 
 store.subscribe(() => {
-  const { cursorPosition, command, replCount } = store.getState()
+  const { completions, cursorPosition, command, replCount } = store.getState()
   const countIndicator = `In [${replCount}]: `
   readline.cursorTo(process.stdout, 0)
   readline.clearLine(process.stdout, 0)
   process.stdout.write(chalk.greenBright.bold(countIndicator))
   process.stdout.write(command)
+  process.stdout.write(completions.join(', '))
   readline.cursorTo(process.stdout, countIndicator.length + cursorPosition)
 
   // console.log(store.getState())

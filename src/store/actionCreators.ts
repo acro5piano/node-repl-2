@@ -2,6 +2,7 @@ import store from 'app/store'
 import types from 'app/store/actionTypes'
 import vm, { Context } from 'vm'
 import { splitCommandAtCursor } from 'app/store/getters'
+import { exec } from 'child_process'
 
 export const runCommand = async (ctx: Context) => {
   const { command } = store.getState()
@@ -121,4 +122,33 @@ export const historyForward = () => {
   toEnd()
 }
 
-export const complete = (_ctx: Context) => {}
+export const killLine = () => {
+  const { command, cursorPosition } = store.getState()
+  store.dispatch({ type: types.SET_COMMAND, command: command.slice(0, cursorPosition) })
+  store.dispatch({ type: types.SET_CLIPBOARD, content: command.slice(cursorPosition) })
+}
+
+export const paste = () => {
+  const { command, cursorPosition, clipboard } = store.getState()
+  const newCommand =
+    command.substr(0, cursorPosition) + clipboard + command.substr(cursorPosition, command.length)
+  store.dispatch({ type: types.SET_COMMAND, command: newCommand })
+  store.dispatch({ type: types.SET_CURSOR_POSITON, position: cursorPosition + clipboard.length })
+}
+
+export const complete = (_ctx: Context) => {
+  return new Promise(resolve => {
+    exec(
+      'cat jest.config.js | node_modules/.bin/flow autocomplete --json 6 36',
+      (error, stdout, stderr) => {
+        if (error || stderr) {
+          console.error(error)
+          return
+        }
+        const items = JSON.parse(stdout).result.map((res: any) => res.name)
+        store.dispatch({ type: types.SET_COMPLETIONS, items })
+        resolve(items)
+      },
+    )
+  })
+}
