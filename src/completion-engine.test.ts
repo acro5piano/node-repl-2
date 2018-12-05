@@ -1,4 +1,4 @@
-import vm, { Context } from 'vm'
+import vm from 'vm'
 import { complete, getCursorWord } from './completion-engine'
 
 // class DummyClass { dummyMethod() { return 1 } }
