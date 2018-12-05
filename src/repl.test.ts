@@ -1,6 +1,5 @@
 import Repl from './repl'
 import chalk from 'chalk'
-import Tty from './tty'
 
 const normalKey = (key: string) => ({
   sequence: key,

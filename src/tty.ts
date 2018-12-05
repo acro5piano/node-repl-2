@@ -1,13 +1,5 @@
 import readline from 'readline'
-import tty from 'tty'
-import vm from 'vm'
 import stripAnsi from 'strip-ansi'
-
-interface KeyInfo {
-  sequence: string
-  name: string
-  ctrl: boolean
-}
 
 export default class Tty {
   replCount: number = 1
