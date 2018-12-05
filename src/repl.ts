@@ -1,9 +1,7 @@
 import readline from 'readline'
 import vm from 'vm'
+import * as actions from 'app/store/actionCreators'
 // import { complete } from './completion-engine'
-import types from 'app/store/actionTypes'
-import { splitCommandAtCursor } from 'app/store/getters'
-import store from 'app/store'
 
 class DummyClass {
   dummyProperty = 1
@@ -38,78 +36,37 @@ export const start = () => {
   process.stdin.on('keypress', onKeyPress)
 }
 
-const onKeyPress = async (_str: any, key: KeyInfo) => {
-  if (key.ctrl && key.name === 'f') {
-    const { command, cursorPosition } = store.getState()
-    if (command.length === cursorPosition) {
-      return
+const onKeyPress = async (str: any, key: KeyInfo) => {
+  if (key.ctrl) {
+    switch (key.name) {
+      case 'a':
+        return actions.toStart()
+      case 'b':
+        return actions.backward()
+      case 'c':
+        return process.exit(0)
+      case 'd':
+        return actions.del()
+      case 'e':
+        return actions.toEnd()
+      case 'f':
+        return actions.forward()
+      case 'n':
+        return actions.historyForward()
+      case 'p':
+        return actions.historyBack()
     }
-    store.dispatch({
-      type: types.CURSOR_RIGHT,
-    })
     return
   }
 
-  if (key.ctrl && key.name === 'c') {
-    process.exit(0)
-    return
-  }
-
-  if (key.ctrl && key.name === 'b') {
-    store.dispatch({
-      type: types.CURSOR_LEFT,
-    })
-    return
-  }
-
-  if (key.ctrl && key.name === 'd') {
-    const { cursorPosition } = store.getState()
-    const [before, after] = splitCommandAtCursor()
-    store.dispatch({
-      type: types.SET_COMMAND,
-      command: before + after.slice(1),
-    })
-
-    store.dispatch({
-      type: types.SET_CURSOR_POSITON,
-      position: cursorPosition,
-    })
-
-    return
-  }
-
-  if (key.name === 'return') {
-    const { command } = store.getState()
-    if (command === '') {
+  switch (key.name) {
+    case 'backspace':
+      return actions.backspace()
+    case 'return':
+      await actions.runCommand(ctx)
       return
-    }
-
-    try {
-      const res = await vm.runInContext(command, ctx)
-      console.log()
-      console.log(res)
-      console.log()
-    } catch (e) {
-      console.error(e)
-    } finally {
-      store.dispatch({
-        type: types.INCREMENT_REPL_COUNT,
-      })
-      store.dispatch({
-        type: types.SET_COMMAND,
-        command: '',
-      })
-      store.dispatch({
-        type: types.SET_CURSOR_POSITON,
-        position: 0,
-      })
-      return
-    }
-  }
-
-  if (!key.ctrl) {
-    store.dispatch({ type: types.APPEND_COMMAND, command: _str })
-    store.dispatch({ type: types.CURSOR_RIGHT })
+    default:
+      return actions.input(str)
   }
 }
 
@@ -119,20 +76,6 @@ const onKeyPress = async (_str: any, key: KeyInfo) => {
 //   historyIndex: number = 0
 //   tty: Tty
 //   ctx: Context
-//
-//   constructor(tty: Tty = new Tty(), ctx: Context = vm.createContext(sandbox)) {
-//     this.tty = tty
-//     this.ctx = ctx
-//   }
-//
-//   static start() {
-//     const repl = new Repl()
-//     return repl
-//   }
-//
-//   get prompt() {
-//     return chalk.greenBright.bold(`In [${this.replCount}]: `)
-//   }
 //
 //   showCompletionCandidates() {
 //     const { localVars, omniCompletions, search } = complete(
@@ -173,25 +116,7 @@ const onKeyPress = async (_str: any, key: KeyInfo) => {
 //       return
 //     }
 //
-//     if (key.ctrl && key.name === 'd') {
-//       if (this.tty.command === '') {
-//         process.exit(0)
-//         return
-//       }
-//       const [before, after] = this.tty.splitCommandAtCursor()
-//       const position = this.tty.cursorPosition
-//       this.tty.setCommand(before + after.slice(1))
-//       this.tty.setPosition(position)
-//       return
-//     }
-//
 //     if (key.name === 'return') {
-//       if (this.tty.command === '') {
-//         console.log()
-//         console.log()
-//         this.tty.setPrompt(this.prompt)
-//         return
-//       }
 //
 //       if (this.tty.command === 'ls') {
 //         const res = this.showCompletionCandidates()
@@ -209,23 +134,6 @@ const onKeyPress = async (_str: any, key: KeyInfo) => {
 //       this.tty.cursorPosition = 0
 //       console.log()
 //       let res: any
-//       try {
-//         res = await vm.runInContext(this.tty.command, this.ctx)
-//         console.log(res)
-//         console.log()
-//       } catch (e) {
-//         console.error(e)
-//       } finally {
-//         this.tty.setCommand('')
-//         this.replCount++
-//         this.tty.setPrompt(this.prompt)
-//       }
-//       return res
-//     }
-//
-//     if (key.ctrl && key.name === 'c') {
-//       process.exit(0)
-//       return
 //     }
 //
 //     if (key.ctrl && key.name === 'a') {

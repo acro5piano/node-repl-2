@@ -8,8 +8,8 @@ export interface AppState {
   readonly cursorPosition: number
   readonly replCount: number
   readonly command: string
-  // readonly histories: string[]
-  // readonly historyIndex: number
+  readonly histories: string[]
+  readonly historyIndex: number
 }
 
 type CursorPositionAction =
@@ -59,6 +59,40 @@ export const command = (state: AppState['command'] = '', action: CommandAction) 
       return action.command
     case types.APPEND_COMMAND:
       return `${state}${action.command}`
+    default:
+      return state
+  }
+}
+
+type HistoryAction = AppAction<types.ADD_HISTORY, { command: string }>
+
+export const histories = (state: AppState['histories'] = [], action: HistoryAction) => {
+  switch (action.type) {
+    case types.ADD_HISTORY:
+      if (state.slice(-1)[0] === action.command) {
+        return state
+      }
+      return [...state, action.command]
+    default:
+      return state
+  }
+}
+
+type HistoryIndexAction =
+  | AppAction<types.INCREMENT_HISTORY_INDEX>
+  | AppAction<types.DECREMENT_HISTORY_INDEX>
+  | AppAction<types.ADD_HISTORY>
+
+export const historyIndex = (state: AppState['historyIndex'] = 0, action: HistoryIndexAction) => {
+  switch (action.type) {
+    case types.ADD_HISTORY:
+    case types.INCREMENT_HISTORY_INDEX:
+      return state + 1
+    case types.DECREMENT_HISTORY_INDEX:
+      if (state === 0) {
+        return state
+      }
+      return state - 1
     default:
       return state
   }
