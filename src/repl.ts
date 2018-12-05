@@ -73,8 +73,8 @@ const onKeyPress = async (_str: any, key: KeyInfo) => {
     })
 
     store.dispatch({
-      type: types.SET_COMMAND,
-      command: cursorPosition,
+      type: types.SET_CURSOR_POSITON,
+      position: cursorPosition,
     })
 
     return
