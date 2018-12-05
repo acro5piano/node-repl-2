@@ -174,19 +174,4 @@ export const complete = (_ctx: Context) => {
     console.log(e)
     // pass
   }
-
-  // return new Promise(resolve => {
-  //   exec(
-  //     'cat jest.config.js | node_modules/.bin/flow autocomplete --json 6 36',
-  //     (error, stdout, stderr) => {
-  //       if (error || stderr) {
-  //         console.error(error)
-  //         return
-  //       }
-  //       const items = JSON.parse(stdout).result.map((res: any) => res.name)
-  //       store.dispatch({ type: types.SET_COMPLETIONS, items })
-  //       resolve(items)
-  //     },
-  //   )
-  // })
 }
