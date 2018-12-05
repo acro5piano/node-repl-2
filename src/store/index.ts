@@ -54,15 +54,6 @@ store.subscribe(() => {
       countIndicator.length + cursorPosition,
       (process.stdout.rows || 0) - 15,
     )
-
-    // if (completed !== command) {
-    //   setImmediate(() =>
-    //     store.dispatch({
-    //       type: types.SET_COMMAND,
-    //       command: command + completed,
-    //     }),
-    //   )
-    // }
   } else {
     readline.cursorTo(process.stdout, countIndicator.length + cursorPosition)
   }

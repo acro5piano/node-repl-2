@@ -8,6 +8,12 @@ import { replHistoryPath } from 'app/constant'
 export const runCommand = async (ctx: Context) => {
   const { command } = store.getState()
   if (command === '') {
+    console.log('\n')
+    // HACK: to re-render
+    store.dispatch({
+      type: types.SET_COMMAND,
+      command: '',
+    })
     return
   }
 
@@ -162,6 +168,8 @@ export const complete = (_ctx: Context) => {
   const query = target.slice(-1)[0]
   const targetString = target.slice(0, -1).join('.')
 
+  console.log(targetString)
+
   const obj = (_ctx as any)[targetString]
   try {
     const items = Object.getOwnPropertyNames(obj)
@@ -170,7 +178,18 @@ export const complete = (_ctx: Context) => {
     } else {
       store.dispatch({ type: types.SET_COMPLETIONS, items })
     }
+
     store.dispatch({ type: types.INCREMENT_COMPLETION_INDEX })
+
+    const { completionIndex, completions } = store.getState()
+    const completed = completions[completionIndex]
+    if (completed !== query) {
+      const newCommand = query ? command.replace(query, completed) : command + completed
+      store.dispatch({
+        type: types.SET_COMMAND,
+        command: newCommand,
+      })
+    }
   } catch (e) {
     console.log(e)
     // pass

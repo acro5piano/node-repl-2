@@ -136,6 +136,8 @@ export const completions = (state: /*string[]*/ any = [], action: CompletionActi
 type CompletionIndexAction =
   | AppAction<types.INCREMENT_COMPLETION_INDEX>
   | AppAction<types.DECREMENT_COMPLETION_INDEX>
+  | AppAction<types.SET_COMPLETIONS>
+  | AppAction<types.SET_COMMAND>
 
 export const completionIndex = (
   state: AppState['completionIndex'] = 0,
@@ -145,9 +147,12 @@ export const completionIndex = (
     case types.INCREMENT_COMPLETION_INDEX:
       return state + 1
     case types.DECREMENT_COMPLETION_INDEX:
-      return state + 1
-    default:
+      return state - 1
+    case types.SET_COMMAND:
+    case types.SET_COMPLETIONS:
       return state
+    default:
+      return 0
   }
 }
 
