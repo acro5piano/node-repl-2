@@ -60,6 +60,8 @@ export const onKeyPress = async (_str: any, key: KeyInfo) => {
   }
 
   switch (key.name) {
+    case 'tab':
+      return actions.complete(ctx)
     case 'backspace':
       return actions.backspace()
     case 'return':

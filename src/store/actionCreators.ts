@@ -120,3 +120,5 @@ export const historyForward = () => {
   store.dispatch({ type: types.SET_COMMAND, command })
   toEnd()
 }
+
+export const complete = (_ctx: Context) => {}
