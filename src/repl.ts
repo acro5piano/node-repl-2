@@ -64,13 +64,21 @@ const onKeyPress = async (_str: any, key: KeyInfo) => {
     return
   }
 
-  // if (key.ctrl && key.name === 'd') {
-  //   const [before, after] = this.tty.splitCommandAtCursor()
-  //   const position = this.tty.cursorPosition
-  //   this.tty.setCommand(before + after.slice(1))
-  //   this.tty.setPosition(position)
-  //   return
-  // }
+  if (key.ctrl && key.name === 'd') {
+    const { command, cursorPosition } = store.getState()
+    const [before, after] = splitCommandAtCursor(command, cursorPosition)
+    store.dispatch({
+      type: types.SET_COMMAND,
+      command: before + after.slice(1),
+    })
+
+    store.dispatch({
+      type: types.SET_COMMAND,
+      command: cursorPosition,
+    })
+
+    return
+  }
 
   if (key.name === 'return') {
     const { command } = store.getState()
@@ -103,6 +111,10 @@ const onKeyPress = async (_str: any, key: KeyInfo) => {
 
   store.dispatch({ type: types.APPEND_COMMAND, command: _str })
   store.dispatch({ type: types.CURSOR_RIGHT })
+}
+
+const splitCommandAtCursor = (command: string, cursorPosition: number) => {
+  return [command.substr(0, cursorPosition), command.substr(cursorPosition, command.length)]
 }
 
 export default class Repl {
