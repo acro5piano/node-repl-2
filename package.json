@@ -11,11 +11,15 @@
     "test": "jest --maxWorkers=10",
     "watch:ts": "tsc -w",
     "watch:js": "env NODE_PATH=./dist nodemon --delay 2 --watch dist dist/index.js",
+    "shell": "ts-node -T",
     "lint": "tslint -c tslint.json -p tsconfig.json",
     "lint:fix": "tslint --fix -c tslint.json -p tsconfig.json"
   },
   "dependencies": {
     "chalk": "^2.4.1",
+    "flow": "^0.2.3",
+    "flow-bin": "^0.87.0",
+    "flow-language-server": "^0.6.0",
     "redux": "^4.0.1",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.3.0",

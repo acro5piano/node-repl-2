@@ -2,10 +2,18 @@ import store from 'app/store'
 import types from 'app/store/actionTypes'
 import vm, { Context } from 'vm'
 import { splitCommandAtCursor } from 'app/store/getters'
+import fs from 'fs'
+import { replHistoryPath } from 'app/constant'
 
 export const runCommand = async (ctx: Context) => {
   const { command } = store.getState()
   if (command === '') {
+    console.log('\n')
+    // HACK: to re-render
+    store.dispatch({
+      type: types.SET_COMMAND,
+      command: '',
+    })
     return
   }
 
@@ -31,6 +39,20 @@ export const runCommand = async (ctx: Context) => {
     store.dispatch({
       type: types.SET_CURSOR_POSITON,
       position: 0,
+    })
+    store.dispatch({
+      type: types.SET_COMPLETIONS,
+      items: [],
+    })
+    const { histories } = store.getState()
+    store.dispatch({
+      type: types.SET_HISTORY_INDEX,
+      index: histories.length,
+    })
+    fs.writeFile(replHistoryPath, histories.join('\n'), err => {
+      if (err) {
+        console.log(err)
+      }
     })
     return
   }
@@ -119,4 +141,57 @@ export const historyForward = () => {
   const command = histories[newHistoryIndex] === undefined ? '' : histories[newHistoryIndex]
   store.dispatch({ type: types.SET_COMMAND, command })
   toEnd()
+}
+
+export const killLine = () => {
+  const { command, cursorPosition } = store.getState()
+  store.dispatch({ type: types.SET_COMMAND, command: command.slice(0, cursorPosition) })
+  store.dispatch({ type: types.SET_CLIPBOARD, content: command.slice(cursorPosition) })
+}
+
+export const paste = () => {
+  const { command, cursorPosition, clipboard } = store.getState()
+  const newCommand =
+    command.substr(0, cursorPosition) + clipboard + command.substr(cursorPosition, command.length)
+  store.dispatch({ type: types.SET_COMMAND, command: newCommand })
+  store.dispatch({ type: types.SET_CURSOR_POSITON, position: cursorPosition + clipboard.length })
+}
+
+export const complete = (_ctx: Context) => {
+  const { command, cursorPosition } = store.getState()
+  const target = command
+    .slice(0, cursorPosition)
+    .split(/[ =]/)
+    .slice(-1)[0]
+    .split('.')
+
+  const query = target.slice(-1)[0]
+  const targetString = target.slice(0, -1).join('.')
+
+  console.log(targetString)
+
+  const obj = (_ctx as any)[targetString]
+  try {
+    const items = Object.getOwnPropertyNames(obj)
+    if (query) {
+      store.dispatch({ type: types.SET_COMPLETIONS, items: items.filter(p => p.includes(query)) })
+    } else {
+      store.dispatch({ type: types.SET_COMPLETIONS, items })
+    }
+
+    store.dispatch({ type: types.INCREMENT_COMPLETION_INDEX })
+
+    const { completionIndex, completions } = store.getState()
+    const completed = completions[completionIndex]
+    if (completed !== query) {
+      const newCommand = query ? command.replace(query, completed) : command + completed
+      store.dispatch({
+        type: types.SET_COMMAND,
+        command: newCommand,
+      })
+    }
+  } catch (e) {
+    console.log(e)
+    // pass
+  }
 }

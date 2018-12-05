@@ -51,15 +51,22 @@ export const onKeyPress = async (_str: any, key: KeyInfo) => {
         return actions.toEnd()
       case 'f':
         return actions.forward()
+      case 'k':
+        return actions.killLine()
       case 'n':
         return actions.historyForward()
       case 'p':
         return actions.historyBack()
+      case 'y':
+        return actions.paste()
     }
     return
   }
 
   switch (key.name) {
+    case 'tab':
+      await actions.complete(ctx)
+      return
     case 'backspace':
       return actions.backspace()
     case 'return':
@@ -69,33 +76,3 @@ export const onKeyPress = async (_str: any, key: KeyInfo) => {
       return actions.input(key.sequence)
   }
 }
-
-// export default class Repl {
-//   showCompletionCandidates() {
-//     const { localVars, omniCompletions, search } = complete(
-//       this.ctx,
-//       this.tty.command,
-//       this.tty.cursorPosition,
-//     )
-//     console.log()
-//     console.log(chalk.bgBlue.white.bold('local vars'))
-//     console.log(localVars)
-//     console.log()
-//     console.log(chalk.bgBlue.white.bold('omni completions'))
-//     console.log(omniCompletions.join(' '))
-//     console.log()
-//
-//     if (omniCompletions.length === 1 && search) {
-//       this.tty.insert(omniCompletions[0].replace(search.method, ''))
-//     }
-//     this.tty.refresh()
-//     return { localVars }
-//   }
-//
-//
-//   onKeyPress = async (_str: any, key: KeyInfo) => {
-//     if (key.name === 'tab') {
-//       return this.showCompletionCandidates()
-//     }
-//   }
-// }
