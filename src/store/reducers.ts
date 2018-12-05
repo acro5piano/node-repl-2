@@ -8,8 +8,8 @@ export interface AppState {
   readonly cursorPosition: number
   readonly replCount: number
   readonly command: string
-  readonly histories: string[]
-  readonly historyIndex: number
+  // readonly histories: string[]
+  // readonly historyIndex: number
 }
 
 type CursorPositionAction =
