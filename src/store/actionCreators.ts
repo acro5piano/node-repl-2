@@ -2,7 +2,8 @@ import store from 'app/store'
 import types from 'app/store/actionTypes'
 import vm, { Context } from 'vm'
 import { splitCommandAtCursor } from 'app/store/getters'
-import { exec } from 'child_process'
+import fs from 'fs'
+import { replHistoryPath } from 'app/constant'
 
 export const runCommand = async (ctx: Context) => {
   const { command } = store.getState()
@@ -32,6 +33,20 @@ export const runCommand = async (ctx: Context) => {
     store.dispatch({
       type: types.SET_CURSOR_POSITON,
       position: 0,
+    })
+    store.dispatch({
+      type: types.SET_COMPLETIONS,
+      items: [],
+    })
+    const { histories } = store.getState()
+    store.dispatch({
+      type: types.SET_HISTORY_INDEX,
+      index: histories.length,
+    })
+    fs.writeFile(replHistoryPath, histories.join('\n'), err => {
+      if (err) {
+        console.log(err)
+      }
     })
     return
   }
@@ -137,18 +152,41 @@ export const paste = () => {
 }
 
 export const complete = (_ctx: Context) => {
-  return new Promise(resolve => {
-    exec(
-      'cat jest.config.js | node_modules/.bin/flow autocomplete --json 6 36',
-      (error, stdout, stderr) => {
-        if (error || stderr) {
-          console.error(error)
-          return
-        }
-        const items = JSON.parse(stdout).result.map((res: any) => res.name)
-        store.dispatch({ type: types.SET_COMPLETIONS, items })
-        resolve(items)
-      },
-    )
-  })
+  const { command, cursorPosition } = store.getState()
+  const target = command
+    .slice(0, cursorPosition)
+    .split(/[ =]/)
+    .slice(-1)[0]
+    .split('.')
+
+  const query = target.slice(-1)[0]
+  const targetString = target.slice(0, -1).join('.')
+
+  const obj = (_ctx as any)[targetString]
+  try {
+    const items = Object.getOwnPropertyNames(obj)
+    if (query) {
+      store.dispatch({ type: types.SET_COMPLETIONS, items: items.filter(p => p.includes(query)) })
+    } else {
+      store.dispatch({ type: types.SET_COMPLETIONS, items })
+    }
+  } catch (e) {
+    console.log(e)
+    // pass
+  }
+
+  // return new Promise(resolve => {
+  //   exec(
+  //     'cat jest.config.js | node_modules/.bin/flow autocomplete --json 6 36',
+  //     (error, stdout, stderr) => {
+  //       if (error || stderr) {
+  //         console.error(error)
+  //         return
+  //       }
+  //       const items = JSON.parse(stdout).result.map((res: any) => res.name)
+  //       store.dispatch({ type: types.SET_COMPLETIONS, items })
+  //       resolve(items)
+  //     },
+  //   )
+  // })
 }

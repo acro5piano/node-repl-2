@@ -66,10 +66,14 @@ export const command = (state: AppState['command'] = '', action: CommandAction) 
   }
 }
 
-type HistoryAction = AppAction<types.ADD_HISTORY, { command: string }>
+type HistoryAction =
+  | AppAction<types.ADD_HISTORY, { command: string }>
+  | AppAction<types.SET_HISTORIES, { histories: string[] }>
 
 export const histories = (state: AppState['histories'] = [], action: HistoryAction) => {
   switch (action.type) {
+    case types.SET_HISTORIES:
+      return action.histories
     case types.ADD_HISTORY:
       if (state.slice(-1)[0] === action.command) {
         return state
@@ -81,13 +85,17 @@ export const histories = (state: AppState['histories'] = [], action: HistoryActi
 }
 
 type HistoryIndexAction =
+  | AppAction<types.SET_HISTORY_INDEX, { index: number }>
+  | AppAction<types.SET_HISTORIES, { histories: string[] }>
   | AppAction<types.INCREMENT_HISTORY_INDEX>
   | AppAction<types.DECREMENT_HISTORY_INDEX>
-  | AppAction<types.ADD_HISTORY>
 
 export const historyIndex = (state: AppState['historyIndex'] = 0, action: HistoryIndexAction) => {
   switch (action.type) {
-    case types.ADD_HISTORY:
+    case types.SET_HISTORIES:
+      return action.histories.length
+    case types.SET_HISTORY_INDEX:
+      return action.index
     case types.INCREMENT_HISTORY_INDEX:
       return state + 1
     case types.DECREMENT_HISTORY_INDEX:
@@ -100,13 +108,25 @@ export const historyIndex = (state: AppState['historyIndex'] = 0, action: Histor
   }
 }
 
-type CompletionAction = AppAction<types.SET_COMPLETIONS, { items: string }>
+type CompletionAction =
+  | AppAction<types.SET_COMPLETIONS, { items: string }>
+  | AppAction<types.RUN_COMMAND>
+  | AppAction<types.CURSOR_LEFT>
+  | AppAction<types.CURSOR_RIGHT>
+  | AppAction<types.SET_CURSOR_POSITON>
+  | AppAction<types.SET_CLIPBOARD>
 
 // TODO: なぜか state: AppState['completions'] とするとバグる
 export const completions = (state: /*string[]*/ any = [], action: CompletionAction) => {
   switch (action.type) {
     case types.SET_COMPLETIONS:
       return action.items
+    case types.RUN_COMMAND:
+    case types.CURSOR_LEFT:
+    case types.CURSOR_RIGHT:
+    case types.SET_CURSOR_POSITON:
+    case types.SET_CLIPBOARD:
+      return []
     default:
       return state
   }
